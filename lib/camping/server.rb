@@ -1,5 +1,6 @@
 require 'irb'
 require 'erb'
+require 'rubygems'
 require 'rack'
 require 'camping/reloader'
 
@@ -78,7 +79,11 @@ module Camping
 
           # Another typical switch to print the version.
           opts.on_tail("-v", "--version", "Show version") do
-            puts Gem.loaded_specs['camping'].version
+            if Gem.loaded_specs.has_key?('camping')
+              puts Gem.loaded_specs['camping'].version 
+            else
+              puts "2.1.hank.git"
+            end
             exit
           end
         end

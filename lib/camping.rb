@@ -184,11 +184,13 @@ module Camping
     def R(c,*g)
       p,h=/\(.+?\)/,g.grep(Hash)
       g-=h
-      raise "bad route" unless u = c.urls.find{|x|
+      unless u = c.urls.find{|x|
         break x if x.scan(p).size == g.size && 
           /^#{x}\/?$/ =~ (x=g.inject(x){|x,a|
             x.sub p,U.escape((a.to_param rescue a))}.gsub(/\\(.)/){$1})
-      }
+      } 
+        raise "bad route" 
+      end
       h.any?? u+"?"+U.build_query(h[0]) : u
     end
 
@@ -545,13 +547,15 @@ module Camping
       # So, define your catch-all controllers last.
       def D(p, m, e)
         p = '/' if !p || !p[0]
-        r.map { |k|
-          k.urls.map { |x|
+        r.each { |k|
+          k.urls.each { |x|
             return (k.method_defined?(m)) ?
               [k, m, *$~[1..-1]] : [I, 'r501', m] if p =~ /^#{x}\/?$/
           }
         }
-        [I, 'r404', p]
+        constants.include?(:RouteMissing) ? 
+          [const_get(:RouteMissing), m, p] : 
+          [I, 'r404', p]
       end
 
       N = H.new { |_,x| x.downcase }.merge! "N" => '(\d+)', "X" => '([^/]+)', "Index" => ''
